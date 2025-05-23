@@ -1,38 +1,106 @@
 .App {
-  text-align: center;
+	text-align: center;
 }
 
 .App-logo {
-  height: 40vmin;
-  pointer-events: none;
+	height: 40vmin;
+	pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+	.App-logo {
+		animation: App-logo-spin infinite 20s linear;
+	}
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+	background-color: #282c34;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	font-size: calc(10px + 2vmin);
+	color: white;
 }
 
 .App-link {
-  color: #61dafb;
+	color: #61dafb;
 }
 
 @keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.web-header {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	background-color: #314533;
+}
+
+.web-navbar {
+	width: 100%;
+	height: 80px;
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	justify-content: right;
+}
+
+.web-navlink {
+	width: 80px;
+	color: white;
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.web-navlink:hover {
+	background-color: green;
+}
+
+.web-heading {
+	font-size: 2em;
+	font-weight: 600;
+	color: white;
+	align-self: center;
+	padding: 0 20px;
+}
+
+.mobile-navbar {
+	width: 100vw;
+	height: 80px;
+	position: sticky;
+	bottom: 0;
+	background-color: #314533;
+	display: flex;
+}
+
+.mobile-navlink {
+	display: flex;
+	width: calc(100% / 5 - 2px);
+	height: 100%;
+	text-decoration: none;
+	color: white;
+	align-items: center;
+	justify-content: center;
+}
+
+.mobile-navlink:hover {
+	background-color: #446047;
+}
+
+.mobile-navlink.active {
+	background-color: green;
+}
+
+#app {
+	height: calc(100vh - 80px);
 }
