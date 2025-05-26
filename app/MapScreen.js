@@ -17,14 +17,22 @@ import {
   View,
   Modal
 } from 'react-native';
-
+// Saving this for future Jean
+/*"plugins": [
+  [
+    "react-native-maps",
+    {
+      "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+    }
+  ]
+]*/
 const { width, height } = Dimensions.get('window');
 
 const MapScreen = ({ route }) => {
   const navigation = useNavigation();
   const params = route?.params || {};
   const username = params.username || 'User';
-  
+
   const [activeTab, setActiveTab] = useState('map');
   const [selectedScale, setSelectedScale] = useState('10km');
   const [showScaleDropdown, setShowScaleDropdown] = useState(false);
@@ -38,65 +46,66 @@ const MapScreen = ({ route }) => {
   // Scale options
   const scaleOptions = ['1km', '5km', '10km', '25km', '50km'];
 
-  // Sample map markers data matching wireframe
+  // Sample map markers data
+  // Will replace later
   const mapMarkers = [
-    { 
-      id: '1', 
-      type: 'elephant_group', 
+    {
+      id: '1',
+      type: 'elephant_group',
       species: 'African Bush Elephant',
-      latitude: -1.2921, 
-      longitude: 36.8219, 
-      count: 3, 
+      latitude: -1.2921,
+      longitude: 36.8219,
+      count: 3,
       timestamp: '2h ago',
       description: 'Small herd grazing near water source',
       conservation: 'Vulnerable',
       color: '#4CAF50',
       position: { left: '25%', top: '35%' }
     },
-    { 
-      id: '2', 
-      type: 'elephant_group', 
+    {
+      id: '2',
+      type: 'elephant_group',
       species: 'African Bush Elephant',
-      latitude: -1.3011, 
-      longitude: 36.8565, 
-      count: 4, 
+      latitude: -1.3011,
+      longitude: 36.8565,
+      count: 4,
       timestamp: '4h ago',
       description: 'Herd moving toward eastern plains',
       conservation: 'Vulnerable',
       color: '#4CAF50',
       position: { left: '30%', top: '50%' }
     },
-    { 
-      id: '3', 
-      type: 'elephant_group', 
+    {
+      id: '3',
+      type: 'elephant_group',
       species: 'African Bush Elephant',
-      latitude: -1.2741, 
-      longitude: 36.8243, 
-      count: 2, 
+      latitude: -1.2741,
+      longitude: 36.8243,
+      count: 2,
       timestamp: '6h ago',
       description: 'Mother and juvenile spotted',
       conservation: 'Vulnerable',
       color: '#4CAF50',
       position: { left: '35%', top: '65%' }
     },
-    { 
-      id: '4', 
-      type: 'warning', 
+    {
+      id: '4',
+      type: 'warning',
       category: 'Alert Zone',
-      latitude: -1.2851, 
-      longitude: 36.8300, 
+      latitude: -1.2851,
+      longitude: 36.8300,
       timestamp: '1h ago',
       description: 'Increased human activity detected',
       urgency: 'Medium',
       color: '#FF5722',
       position: { left: '40%', top: '40%' }
     },
-    { 
-      id: '5', 
-      type: 'camera', 
+    {
+      id: '5',
+      type: 'camera',
       category: 'Camera Station',
-      latitude: -1.2881, 
-      longitude: 36.8419, 
+      latitude: -1.2881,
+      longitude: 36.8419,
       timestamp: 'Active',
       description: 'Wildlife monitoring station',
       status: 'Online',
@@ -134,9 +143,9 @@ const MapScreen = ({ route }) => {
     setActiveTab(tab);
   };
 
-  // Get appropriate icon for marker
+  // Get the right icon for marker
   const getMarkerIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'elephant_group': return 'elephant';
       case 'lion': return 'cat';
       case 'rhino': return 'rhino';
@@ -156,15 +165,15 @@ const MapScreen = ({ route }) => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Image 
-              source={require('../assets/EpiUseLogo.png')} 
-              style={styles.logo} 
-              resizeMode="contain"
+          <Image
+            source={require('../assets/EpiUseLogo.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
           <View style={styles.titleContainer}>
-              <Text style={styles.headerTitle}>Wildlife Map</Text>
+            <Text style={styles.headerTitle}>Wildlife Map</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.iconButton}
             onPress={() => setShowInfoModal(true)}
           >
@@ -174,18 +183,18 @@ const MapScreen = ({ route }) => {
 
         {/* Scale Selector */}
         <View style={styles.scaleContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.scaleSelector}
             onPress={() => setShowScaleDropdown(!showScaleDropdown)}
           >
             <Text style={styles.scaleText}>{selectedScale}</Text>
-            <MaterialIcons 
-              name={showScaleDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"} 
-              size={20} 
-              color="white" 
+            <MaterialIcons
+              name={showScaleDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+              size={20}
+              color="white"
             />
           </TouchableOpacity>
-          
+
           {showScaleDropdown && (
             <View style={styles.scaleDropdown}>
               {scaleOptions.map((scale) => (
@@ -209,56 +218,44 @@ const MapScreen = ({ route }) => {
           )}
         </View>
 
-        {/* Map Container */}
+        {/* Map Container with Image */}
         <View style={styles.mapContainer}>
-          {/* Satellite-style map background */}
-          <View style={styles.satelliteMap}>
-            {/* Simulated satellite imagery pattern */}
-            <View style={styles.terrainPattern} />
-            
-            {/* Road/Path overlay */}
-            <View style={styles.roadOverlay} />
-            
-            {/* Map Markers */}
-            {mapMarkers.map((marker) => (
-              <TouchableOpacity
-                key={marker.id}
-                style={[
-                  styles.mapMarker,
-                  {
-                    left: marker.position.left,
-                    top: marker.position.top,
-                  }
-                ]}
-                onPress={() => focusMarker(marker)}
-              >
-                {marker.type === 'elephant_group' ? (
-                  <View style={styles.elephantMarker}>
-                    <MaterialCommunityIcons name="elephant" size={16} color="white" />
-                    <Text style={styles.markerCount}>{marker.count}</Text>
-                  </View>
-                ) : marker.type === 'warning' ? (
-                  <View style={[styles.alertMarker, { backgroundColor: marker.color }]}>
-                    <MaterialIcons name="warning" size={16} color="white" />
-                  </View>
-                ) : (
-                  <View style={[styles.cameraMarker, { backgroundColor: marker.color }]}>
-                    <MaterialIcons name="camera-alt" size={16} color="white" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-            
-            {/* Paw print icon (from wireframe) */}
-            <View style={styles.pawPrintIcon}>
-              <MaterialIcons name="pets" size={30} color="rgba(139, 69, 19, 0.8)" />
-            </View>
-          </View>
+          {/* Map Demo Image */}
+          <Image
+            source={require('../assets/Map-Demo.jpg')}// For now just use this static image
+            style={styles.mapImage}
+            resizeMode="cover"
+          />
 
-          {/* Google attribution */}
-          <View style={styles.googleAttribution}>
-            <Text style={styles.googleText}>Google</Text>
-          </View>
+          {/* Map Markers Overlay */}
+          {mapMarkers.map((marker) => (
+            <TouchableOpacity
+              key={marker.id}
+              style={[
+                styles.mapMarker,
+                {
+                  left: marker.position.left,
+                  top: marker.position.top,
+                }
+              ]}
+              onPress={() => focusMarker(marker)}
+            >
+              {marker.type === 'elephant_group' ? (
+                <View style={styles.elephantMarker}>
+                  <MaterialCommunityIcons name="elephant" size={16} color="white" />
+                  <Text style={styles.markerCount}>{marker.count}</Text>
+                </View>
+              ) : marker.type === 'warning' ? (
+                <View style={[styles.alertMarker, { backgroundColor: marker.color }]}>
+                  <MaterialIcons name="warning" size={16} color="white" />
+                </View>
+              ) : (
+                <View style={[styles.cameraMarker, { backgroundColor: marker.color }]}>
+                  <MaterialIcons name="camera-alt" size={16} color="white" />
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Animal Detail Panel */}
@@ -267,7 +264,8 @@ const MapScreen = ({ route }) => {
             styles.animalDetailPanel,
             {
               transform: [
-                { translateY: detailsAnimation.interpolate({
+                {
+                  translateY: detailsAnimation.interpolate({
                     inputRange: [0, 1],
                     outputRange: [300, 0]
                   })
@@ -281,17 +279,17 @@ const MapScreen = ({ route }) => {
                 <View style={styles.handleBar} />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.detailContent}>
               <View style={styles.detailHeader}>
-                <MaterialCommunityIcons 
-                  name={getMarkerIcon(selectedAnimal.type)} 
-                  size={24} 
-                  color={selectedAnimal.color} 
+                <MaterialCommunityIcons
+                  name={getMarkerIcon(selectedAnimal.type)}
+                  size={24}
+                  color={selectedAnimal.color}
                 />
                 <View style={styles.detailHeaderText}>
                   <Text style={styles.detailTitle}>
-                    {selectedAnimal.type !== 'warning' 
+                    {selectedAnimal.type !== 'warning'
                       ? `${selectedAnimal.species || selectedAnimal.category} ${selectedAnimal.count ? `(${selectedAnimal.count})` : ''}`
                       : selectedAnimal.category}
                   </Text>
@@ -300,11 +298,11 @@ const MapScreen = ({ route }) => {
                   </Text>
                 </View>
               </View>
-              
+
               <Text style={styles.detailDescription}>
                 {selectedAnimal.description}
               </Text>
-              
+
               <TouchableOpacity style={[styles.actionButton, { backgroundColor: selectedAnimal.color }]}>
                 <Text style={styles.actionButtonText}>
                   {selectedAnimal.type === 'warning' ? 'View Alert Details' : 'Track Activity'}
@@ -346,39 +344,39 @@ const MapScreen = ({ route }) => {
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
-          <TouchableOpacity 
-            style={[styles.navItem, activeTab === 'home' && styles.activeNavItem]} 
-            onPress={() => handleNavigation('MainScreen', 'home')} 
+          <TouchableOpacity
+            style={[styles.navItem, activeTab === 'home' && styles.activeNavItem]}
+            onPress={() => handleNavigation('MainScreen', 'home')}
           >
             <MaterialIcons name="home" size={24} color={activeTab === 'home' ? 'white' : '#A0A0A0'} />
             <Text style={[styles.navText, activeTab === 'home' && styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.navItem, activeTab === 'map' && styles.activeNavItem]} 
+          <TouchableOpacity
+            style={[styles.navItem, activeTab === 'map' && styles.activeNavItem]}
             onPress={() => handleNavigation('MapScreen', 'map')}
           >
             <MaterialIcons name="map" size={24} color={activeTab === 'map' ? 'white' : '#A0A0A0'} />
             <Text style={[styles.navText, activeTab === 'map' && styles.activeNavText]}>Map</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.addButton}
             onPress={() => alert('Camera functionality')}
           >
             <MaterialIcons name="camera-alt" size={32} color="white" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.navItem, activeTab === 'reports' && styles.activeNavItem]} 
+          <TouchableOpacity
+            style={[styles.navItem, activeTab === 'reports' && styles.activeNavItem]}
             onPress={() => handleNavigation('FeedScreen', 'reports')}
           >
             <MaterialIcons name="bar-chart" size={24} color={activeTab === 'reports' ? 'white' : '#A0A0A0'} />
             <Text style={[styles.navText, activeTab === 'reports' && styles.activeNavText]}>Feed</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.navItem, activeTab === 'profile' && styles.activeNavItem]} 
+          <TouchableOpacity
+            style={[styles.navItem, activeTab === 'profile' && styles.activeNavItem]}
             onPress={() => handleNavigation('ProfileScreen', 'profile')}
           >
             <MaterialIcons name="person" size={24} color={activeTab === 'profile' ? 'white' : '#A0A0A0'} />
@@ -481,29 +479,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
   },
-  satelliteMap: {
-    flex: 1,
-    backgroundColor: '#8B7355',
-    position: 'relative',
-  },
-  terrainPattern: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#8B7355',
-    backgroundImage: 'linear-gradient(45deg, #A0926B 25%, transparent 25%), linear-gradient(-45deg, #A0926B 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #A0926B 75%), linear-gradient(-45deg, transparent 75%, #A0926B 75%)',
-    opacity: 0.3,
-  },
-  roadOverlay: {
-    position: 'absolute',
-    top: '20%',
-    right: '10%',
-    bottom: '10%',
-    width: 3,
-    backgroundColor: '#666',
-    opacity: 0.6,
+  mapImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 15,
   },
   mapMarker: {
     position: 'absolute',
@@ -545,26 +524,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
-  },
-  pawPrintIcon: {
-    position: 'absolute',
-    top: '15%',
-    right: '15%',
-    zIndex: 3,
-  },
-  googleAttribution: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 3,
-  },
-  googleText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
   },
   animalDetailPanel: {
     position: 'absolute',

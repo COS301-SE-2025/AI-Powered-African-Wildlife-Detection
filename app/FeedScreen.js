@@ -117,7 +117,7 @@ const FeedScreen = () => {
   });
 
   const toggleLike = (entryId) => {
-    // In a real app, this would make an API call
+    // This would make an API call
     console.log('Toggle like for entry:', entryId);
   };
 
@@ -704,6 +704,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activeNavItem: {
+    // Will add later if needed future Jean
     // Active state styling
   },
   navText: {
