@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1748351236840" clover="3.2.0">
+  <project timestamp="1748351236841" name="All files">
+    <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0" elements="2" coveredelements="0" complexity="0" loc="1" ncloc="1" packages="1" files="1" classes="1"/>
+    <file name="TabBarBackground.tsx" path="C:\2025\COS301\Capstone_Code\AI-Powered-African-Wildlife-Detection\components\ui\TabBarBackground.tsx">
+      <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+      <line num="5" count="0" type="stmt"/>
+    </file>
+  </project>
+</coverage>
