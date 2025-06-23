@@ -44,14 +44,14 @@ const AuthScreen = () => {
               {...register("email", { required: true })}
               placeholder="Email"
             />
-            {errors.email && <span style={{ color: "red" }}>*Email* is mandatory</span>}
+            {/* {errors.email && <span style={{ color: "red" }}>*Email* is mandatory</span>} */}
 
             <input
               type="password"
               {...register("password", { required: true })}
               placeholder="Password"
             />
-            {errors.password && <span style={{ color: "red" }}>*Password* is mandatory</span>}
+            {/* {errors.password && <span style={{ color: "red" }}>*Password* is mandatory</span>} */}
 
             <input type="submit" value="Login" className="login-button"/>
           </form>
