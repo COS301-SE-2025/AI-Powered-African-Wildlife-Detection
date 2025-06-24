@@ -31,29 +31,35 @@ const AuthScreen = () => {
 
   return (
     <div className="auth-container">
+
       <div className="auth-background">
-        <div className="auth-form">
-          <img
+
+        {/* <img
             src={Logo}
             alt="Epi-Use Logo"
             className="auth-logo"
-          />
-          <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
-            <input
-              type="email"
-              {...register("email", { required: true })}
-              placeholder="Email"
+        /> */}
+
+        <div className="auth-form">
+            <h1 color="white">BushBuddy</h1>
+            
+            <h2>Login</h2>
+            <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
+                <input
+                type="email"
+                {...register("email", { required: true })}
+                placeholder="Email"
             />
             {/* {errors.email && <span style={{ color: "red" }}>*Email* is mandatory</span>} */}
 
             <input
-              type="password"
-              {...register("password", { required: true })}
-              placeholder="Password"
+                type="password"
+                {...register("password", { required: true })}
+                placeholder="Password"
             />
             {/* {errors.password && <span style={{ color: "red" }}>*Password* is mandatory</span>} */}
 
-            <input type="submit" value="Login" className="login-button"/>
+            <input type="submit" value="Login" className="auth-button"/>
           </form>
         </div>
       </div>
