@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // NB remember to install @react-navigation/native and @react-navigation/native-stack
+import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import * as Haptics from 'expo-haptics'; //for haptic feedback
+import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
 import { Alert, Animated, Button, Dimensions, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -12,10 +12,13 @@ const CameraPage = () => {
   const [activeTab, setActiveTab] = useState('camera');
   const [lastPhoto, setLastPhoto] = useState(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [flashMode, setFlashMode] = useState('auto'); // Flash mode state
-  const [showPhotoModal, setShowPhotoModal] = useState(false); // Photo modal state
+  const [flashMode, setFlashMode] = useState('auto');
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const cameraRef = useRef(null);
   const flashAnimation = useRef(new Animated.Value(0)).current;
+
+  // Make sure this matches your server IP (Run ipconfig in CMD to find your local IP)
+  const API_URL = 'http://192.168.1.101:5000';
 
   if (!permission) {
     return <View />;
@@ -31,12 +34,10 @@ const CameraPage = () => {
   }
 
   function toggleCameraFacing() {
-    // Add haptic feedback for camera flip
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
-  // Function to toggle flash mode
   const toggleFlashMode = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setFlashMode(current => {
@@ -53,7 +54,6 @@ const CameraPage = () => {
     });
   };
 
-  // Function to get flash icon based on mode(being fancy)
   const getFlashIcon = () => {
     switch (flashMode) {
       case 'on':
@@ -70,11 +70,9 @@ const CameraPage = () => {
     if (cameraRef.current && !isCapturing) {
       try {
         setIsCapturing(true);
-        
-        // Add haptic feedback for capture
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        
-        // Snapchat-style flash animation
+
+        // Flash animation
         Animated.sequence([
           Animated.timing(flashAnimation, {
             toValue: 1,
@@ -88,37 +86,156 @@ const CameraPage = () => {
           }),
         ]).start();
 
+        console.log('Taking picture...');
+        
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-          base64: false,
-          exif: true,
-          flash: flashMode, // Use the current flash mode
+          quality: 0.8, // Slightly higher quality
+          base64: true,
+          exif: false,
+          flash: flashMode,
+          format: 'jpeg', // Explicitly specify JPEG format
         });
-        
-        // Save the last photo for thumbnail preview
+
+        console.log('Photo taken, URI:', photo.uri);
         setLastPhoto(photo.uri);
+
+        // Validate base64 data
+        if (!photo.base64) {
+          Alert.alert('Error', 'Failed to encode image');
+          return;
+        }
+
+        console.log('Base64 data length:', photo.base64.length);
+        console.log('Sending to API...');
+
+        // Test API connection first
+        // http://YOUR_IP:5000/health
+        try {
+          const healthResponse = await fetch(`${API_URL}/health`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+          });
+          
+          if (!healthResponse.ok) {
+            throw new Error(`Health check failed: ${healthResponse.status}`);
+          }
+          
+          const healthData = await healthResponse.json();
+          console.log('Health check:', healthData);
+          
+          if (!healthData.success || !healthData.model_loaded) {
+            Alert.alert('Error', 'AI model not loaded on server');
+            return;
+          }
+          
+        } catch (healthError) {
+          console.error('Health check failed:', healthError);
+          Alert.alert('Connection Error', 'Cannot connect to AI server. Please check if the server is running.');
+          return;
+        }
+
+        // Send image to Flask API
+        const requestBody = {
+          image: photo.base64 // Send just the base64 string without data URL prefix
+        };
+
+        const response = await fetch(`${API_URL}/detect`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        console.log('API response status:', response.status);
         
-        // Handle the captured photo later on
-        console.log('Photo captured:', photo.uri);
-        
-        // Show success feedback
-        // Alert.alert('Photo Captured!', 'Snap saved!');
-        
-        // Navigate to a preview screen or save the photo
-        // navigation.navigate('PhotoPreview', { photoUri: photo.uri });
-        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API error response:', errorText);
+          throw new Error(`API request failed: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Detection result:', result);
+
+        // Handle API response
+        if (!result.success || result.error) {
+          Alert.alert('Detection Error', result.error || 'Unknown error occurred');
+          return;
+        }
+
+        // Display results
+        if (result.count > 0) {
+          const detectionText = result.detections
+            .map(d => `${d.class} (${(d.confidence * 100).toFixed(1)}%)`)
+            .join('\n');
+          // Make better alert message (Maybe like my local one?)
+          Alert.alert(
+            'Wildlife Detected! 🦁',
+            `Found ${result.count} animal(s):\n\n${detectionText}`,
+            [{ text: 'OK', style: 'default' }]
+          );
+        } else {
+          Alert.alert(
+            'No Wildlife Detected',
+            'No animals were detected in this image. Try getting closer or ensuring good lighting.',
+            [{ text: 'OK', style: 'default' }]
+          );
+        }
+
       } catch (error) {
-        console.error('Error taking picture:', error);
-        Alert.alert('Error', 'Failed to take picture');
+        console.error('Error during detection:', error);
+        
+        // Provide specific error messages
+        let errorMessage = 'Detection failed. ';
+        if (error.message.includes('Network request failed')) {
+          errorMessage += 'Please check your internet connection and ensure the AI server is running.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage += 'The request took too long. Please try again.';
+        } else if (error.message.includes('JSON')) {
+          errorMessage += 'Invalid response from server.';
+        } else {
+          errorMessage += error.message || 'Unknown error occurred.';
+        }
+        
+        Alert.alert('Error', errorMessage);
       } finally {
         setIsCapturing(false);
       }
     }
   };
 
+  // Test API connection function
+  //  http://YOUR_IP:5000/test
+  const testAPIConnection = async () => {
+    try {
+      const response = await fetch(`${API_URL}/test`, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        Alert.alert('API Test', `Connection successful: ${data.message}`);
+      } else {
+        Alert.alert('API Test Failed', 'Server responded but with error');
+      }
+    } catch (error) {
+      Alert.alert('API Test Failed', `Cannot connect to server: ${error.message}`);
+    }
+  };
+
   // Navigation handlers
   const handleNavigation = (screen, tab) => {
-    // Add haptic feedback for navigation
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     navigation.navigate(screen);
     setActiveTab(tab);
@@ -128,9 +245,13 @@ const CameraPage = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={testAPIConnection}>
+          <MaterialIcons name="wifi" size={24} color="white" />
+        </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={styles.headerTitle}>Buddy Scanner</Text>
         </View>
+        <View style={{ width: 24 }} />
       </View>
 
       {/* Camera View */}
@@ -141,7 +262,7 @@ const CameraPage = () => {
         flash={flashMode}
       >
         <View style={styles.cameraOverlay}>
-          {/* Flash Overlay(cool like snapchat) */}
+          {/* Flash Overlay */}
           <Animated.View 
             style={[
               styles.flashOverlay,
@@ -154,7 +275,6 @@ const CameraPage = () => {
 
           {/* Top Controls */}
           <View style={styles.topControls}>
-            {/* Flash Mode Button */}
             <TouchableOpacity 
               style={[styles.flashButton, { marginRight: 10 }]} 
               onPress={toggleFlashMode}
@@ -173,7 +293,7 @@ const CameraPage = () => {
           {/* Bottom Controls */}
           <View style={styles.cameraControls}>
             <View style={styles.captureContainer}>
-              {/* Last Photo Thumbnail will add more detail later on*/}
+              {/* Last Photo Thumbnail */}
               <TouchableOpacity 
                 style={styles.thumbnailContainer}
                 onPress={() => {
@@ -204,7 +324,11 @@ const CameraPage = () => {
                 <View style={[
                   styles.captureButtonInner,
                   isCapturing && styles.captureButtonInnerPressed
-                ]} />
+                ]}>
+                  {isCapturing && (
+                    <MaterialIcons name="hourglass-empty" size={24} color="#666" />
+                  )}
+                </View>
               </TouchableOpacity>
 
               {/* Placeholder for right side balance */}
@@ -253,7 +377,6 @@ const CameraPage = () => {
                   style={styles.actionButton}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    // Add save functionality here
                     Alert.alert('Save', 'Photo would be saved to gallery');
                     setShowPhotoModal(false);
                   }}
@@ -266,7 +389,6 @@ const CameraPage = () => {
                   style={styles.actionButton}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    // Add share functionality here
                     Alert.alert('Share', 'Photo would be shared');
                     setShowPhotoModal(false);
                   }}
@@ -279,7 +401,6 @@ const CameraPage = () => {
                   style={styles.actionButton}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    // Add delete functionality here
                     Alert.alert(
                       'Delete Photo',
                       'Are you sure you want to delete this photo?',
@@ -464,6 +585,8 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
     transition: 'all 0.1s ease',
   },
   captureButtonPressed: {
