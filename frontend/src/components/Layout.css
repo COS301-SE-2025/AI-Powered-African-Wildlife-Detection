@@ -26,6 +26,10 @@
     display: flex;
 }
 
+.nav-container {
+  position: relative;
+}
+
 .nav-button {
     flex: 1;
     display: flex;
@@ -46,16 +50,22 @@
 }
 
 .nav-button-scanner {
-    position: absolute;
-    top: 48rem;
+    position: fixed;
+    bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
     border: none;
     border-radius: 50%;
     padding: 0.75rem;
-    width: 4rem;
-    height: 4rem;
+    width: 4.5rem;
+    height: 4.5rem;
     background-color: #ff6b00;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .nav-button-scanner svg {

@@ -30,7 +30,10 @@ function Layout() {
           <Outlet />
         </Container>
 
+      <div className="nav-container">
+
         <Navbar className="footer">
+          
           <Button className="nav-button" onClick={() => navigate('/main')}>
             <FaHome size={30} />
           </Button>
@@ -39,9 +42,9 @@ function Layout() {
             <FaMapMarkedAlt size={30} />
           </Button>
 
-          {/* <div className="nav-button"></div> */}
+          <div style={{ width: "50px" }} /> {/* Spacer */}
 
-          <Button className="nav-button" onClick={() => navigate('/capture')}>
+          <Button className="nav-button-scanner" onClick={() => navigate('/capture')}>
             <FaCamera size={30} />
           </Button>
 
@@ -53,6 +56,7 @@ function Layout() {
             <FaUser size={25} />
           </Button>
         </Navbar>
+        </div>
       </div>
     </>
   );
