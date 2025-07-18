@@ -30,32 +30,32 @@ function Layout() {
           <Outlet />
         </Container>
 
-      <div className="nav-container">
+        <div className="nav-container">
 
-        <Navbar className="footer">
-          
-          <Button className="nav-button" onClick={() => navigate('/main')}>
-            <FaHome size={30} />
-          </Button>
+          <Navbar className="footer">
 
-          <Button className="nav-button" onClick={() => navigate('/map')}>
-            <FaMapMarkedAlt size={30} />
-          </Button>
+            <Button className="nav-button" onClick={() => navigate('/main')}>
+              <FaHome size={30} />
+            </Button>
 
-          <div style={{ width: "50px" }} /> {/* Spacer */}
+            <Button className="nav-button" onClick={() => navigate('/map')}>
+              <FaMapMarkedAlt size={30} />
+            </Button>
 
-          <Button className="nav-button-scanner" onClick={() => navigate('/capture')}>
-            <FaCamera size={30} />
-          </Button>
+            <div style={{ width: "50px" }} /> {/* Spacer */}
 
-          <Button className="nav-button" onClick={() => navigate('/feed')}>
-            <FaRegNewspaper size={30} />
-          </Button>
+            <Button className="nav-button-scanner" onClick={() => navigate('/capture')}>
+              <FaCamera size={30} />
+            </Button>
 
-          <Button className="nav-button" onClick={() => navigate('/profile')}>
-            <FaUser size={25} />
-          </Button>
-        </Navbar>
+            <Button className="nav-button" onClick={() => navigate('/feed')}>
+              <FaRegNewspaper size={30} />
+            </Button>
+
+            <Button className="nav-button" onClick={() => navigate('/profile')}>
+              <FaUser size={25} />
+            </Button>
+          </Navbar>
         </div>
       </div>
     </>

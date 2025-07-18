@@ -43,13 +43,13 @@ useEffect(() => {
         className='map-container'
       >
         <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Default">
+          <LayersControl.BaseLayer name="Default">
             <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
+              attribution='&copy; OpenStreetMap contributors' 
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Satellite">
+          <LayersControl.BaseLayer checked name="Satellite">
             <TileLayer
               attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, etc.'
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"

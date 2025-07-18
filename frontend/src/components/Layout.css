@@ -27,7 +27,7 @@
 }
 
 .nav-container {
-  position: relative;
+    position: relative;
 }
 
 .nav-button {
@@ -51,7 +51,7 @@
 
 .nav-button-scanner {
     position: fixed;
-    bottom: 2rem;
+    bottom: 1.5rem;
     left: 50%;
     transform: translateX(-50%);
     border: none;
