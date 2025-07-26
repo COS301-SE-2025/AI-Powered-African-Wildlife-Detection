@@ -11,6 +11,9 @@ const CameraPage = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [activeTab, setActiveTab] = useState('camera');
   const [lastPhoto, setLastPhoto] = useState(null);
+  // NEW: Add state for detection data
+  const [lastPhotoDetections, setLastPhotoDetections] = useState(null);
+  const [photoDimensions, setPhotoDimensions] = useState(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [flashMode, setFlashMode] = useState('auto');
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -99,6 +102,11 @@ const CameraPage = () => {
         console.log('Photo taken, URI:', photo.uri);
         setLastPhoto(photo.uri);
 
+        // NEW: Store photo dimensions for bounding box scaling
+        Image.getSize(photo.uri, (width, height) => {
+          setPhotoDimensions({ width, height });
+        });
+
         // Validate base64 data
         if (!photo.base64) {
           Alert.alert('Error', 'Failed to encode image');
@@ -166,6 +174,9 @@ const CameraPage = () => {
           Alert.alert('Detection Error', result.error || 'Unknown error occurred');
           return;
         }
+
+        // NEW: Store detections for drawing bounding boxes
+        setLastPhotoDetections(result.detections || []);
 
         // Display results
         if (result.count > 0) {
@@ -411,6 +422,9 @@ const CameraPage = () => {
                           style: 'destructive',
                           onPress: () => {
                             setLastPhoto(null);
+                            // NEW: Clear detection data when deleting photo
+                            setLastPhotoDetections(null);
+                            setPhotoDimensions(null);
                             setShowPhotoModal(false);
                           }
                         }
