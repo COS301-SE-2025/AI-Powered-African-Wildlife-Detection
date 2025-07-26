@@ -223,14 +223,34 @@ const CameraPage = () => {
     }
   };
 
-  // NEW: Render bounding boxes using View components instead of SVG
+  // Render bounding boxes using View components instead of SVG
   const renderBoundingBoxes = () => {
     if (!lastPhotoDetections || !photoDimensions) return null;
 
-    // TODO: Add scaling calculations and box rendering
-    console.log('Rendering bounding boxes:', lastPhotoDetections.length);
+    const { width: screenWidth } = Dimensions.get('window');
+    const modalPhotoHeight = height * 0.8;
     
-    return null; // Placeholder for now
+    // NEW: Calculate scaling factors
+    const scaleX = screenWidth / photoDimensions.width;
+    const scaleY = modalPhotoHeight / photoDimensions.height;
+    const scale = Math.min(scaleX, scaleY);
+    
+    const scaledWidth = photoDimensions.width * scale;
+    const scaledHeight = photoDimensions.height * scale;
+    
+    // NEW: Calculate offsets to center the image
+    const offsetX = (screenWidth - scaledWidth) / 2;
+    const offsetY = (modalPhotoHeight - scaledHeight) / 2;
+
+    console.log('Rendering bounding boxes:', {
+      detections: lastPhotoDetections.length,
+      photoDimensions,
+      scale,
+      offsetX,
+      offsetY
+    });
+    
+    return null; // Still placeholder, will add actual boxes in next version
   };
 
   // Test API connection function
@@ -362,7 +382,7 @@ const CameraPage = () => {
         </View>
       </CameraView>
 
-      {/* Photo Preview Modal */}
+      {/* Photo Preview Modal with Bounding Box Container */}
       <Modal
         visible={showPhotoModal}
         transparent={true}
@@ -377,11 +397,17 @@ const CameraPage = () => {
           >
             <View style={styles.photoContainer}>
               {lastPhoto && (
-                <Image 
-                  source={{ uri: lastPhoto }} 
-                  style={styles.fullScreenPhoto}
-                  resizeMode="contain"
-                />
+                <>
+                  <Image 
+                    source={{ uri: lastPhoto }} 
+                    style={styles.fullScreenPhoto}
+                    resizeMode="contain"
+                  />
+                  {/* NEW: Render bounding boxes over the image */}
+                  <View style={styles.boundingBoxContainer}>
+                    {renderBoundingBoxes()}
+                  </View>
+                </>
               )}
               
               {/* Close button */}
@@ -638,8 +664,17 @@ const styles = StyleSheet.create({
     height: height,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   fullScreenPhoto: {
+    width: width,
+    height: height * 0.8,
+  },
+  // NEW: Bounding box container style
+  boundingBoxContainer: {
+    position: 'absolute',
+    top: (height - height * 0.8) / 2,
+    left: 0,
     width: width,
     height: height * 0.8,
   },
