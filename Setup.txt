@@ -1,0 +1,19 @@
+How to setup:
+
+Download these dependecies:
+pip install flask_cors
+
+Run pip list:
+-Flask
+-OpenCV
+-Ultralytics
+-Torch
+-Torchvision
+-NumPy
+
+You should have all these installed.
+
+Start AI server:python api_server.py
+Start app:Npm start
+
+Everything should work.If it says network failure both devices must be on the same high speed network for it to work at this moment.
