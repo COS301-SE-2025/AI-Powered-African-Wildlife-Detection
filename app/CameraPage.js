@@ -22,7 +22,7 @@ const CameraPage = () => {
   // Make sure this matches your server IP (Run ipconfig in CMD to find your local IP)
   const API_URL = 'http://192.168.1.101:5000';
 
-  // NEW: Define bounding box colors (matching your Python script)
+  // Define bounding box colors (matching your Python script)
   const bbox_colors = [
     '#A47857', '#4494E4', '#5D61D1', '#B2B685', '#589F6A', 
     '#60CAE7', '#9F7CA8', '#A9A2F1', '#627696', '#ACB0B8'
@@ -221,6 +221,16 @@ const CameraPage = () => {
         setIsCapturing(false);
       }
     }
+  };
+
+  // NEW: Render bounding boxes using View components instead of SVG
+  const renderBoundingBoxes = () => {
+    if (!lastPhotoDetections || !photoDimensions) return null;
+
+    // TODO: Add scaling calculations and box rendering
+    console.log('Rendering bounding boxes:', lastPhotoDetections.length);
+    
+    return null; // Placeholder for now
   };
 
   // Test API connection function
