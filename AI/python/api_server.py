@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 try:
     model_path = "runs/detect/train/weights/best.pt"
     if not os.path.exists(model_path):
-        # Fallback to your other model path
+        # Fallback to my other model path (Else it crashes)
         model_path = "my_model.pt"
     
     print(f"Loading YOLO model from: {model_path}")
@@ -38,6 +38,32 @@ try:
 except Exception as e:
     print(f"Error loading model: {str(e)}")
     model = None
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "classes": list(model.names.values()) if model else [],
+        "success": True,
+        "server_info": {
+            "host": request.host,
+            "remote_addr": request.remote_addr
+        }
+    })
+
+@app.route('/test', methods=['GET'])
+def test():
+    """Test endpoint"""
+    return jsonify({
+        "message": "API is working!", 
+        "success": True,
+        "server_info": {
+            "host": request.host,
+            "remote_addr": request.remote_addr
+        }
+    })
 
 @app.route('/detect', methods=['POST'])
 def detect():
@@ -62,7 +88,7 @@ def detect():
         if not img_data or not isinstance(img_data, str):
             return jsonify({"error": "Invalid image data format", "success": False}), 400
         
-        # Handle base64 image data
+        # Handle base64 image data (Maybe there is a better way to do this? )
         try:
             # Remove data URL prefix if present
             if img_data.startswith('data:image'):
@@ -78,7 +104,7 @@ def detect():
             
             # Create BytesIO object and seek to beginning
             img_buffer = BytesIO(img_bytes)
-            img_buffer.seek(0)
+            img_buffer.seek(0) # Did the trick for the constant error I was getting
             
             # Try to open image with PIL
             try:
@@ -87,7 +113,7 @@ def detect():
                 if image.mode != 'RGB':
                     image = image.convert('RGB')
                 
-                # Convert PIL to numpy array
+                # Convert PIL to numpy array (Keep as RGB for YOLO)
                 frame = np.array(image)
                 
                 logger.info(f"Image shape: {frame.shape}, Image mode: {image.mode}")
@@ -119,7 +145,7 @@ def detect():
             logger.error(f"Error processing image: {str(e)}")
             return jsonify({"error": f"Error processing image: {str(e)}", "success": False}), 400
         
-        # Run inference
+        # Run YOLO inference
         try:
             results = model(frame, verbose=False)
             
@@ -129,44 +155,59 @@ def detect():
                     "detections": [],
                     "count": 0,
                     "success": True,
-                    "message": "No detections found"
+                    "message": "No detections found",
+                    "image_dimensions": {
+                        "width": frame.shape[1],
+                        "height": frame.shape[0]
+                    }
                 })
             
             detections = results[0].boxes
             
-            output = []
+            # Process detections (similar to yolo_detect.py)
+            detection_list = []
+            object_count = 0
+            
             if detections is not None and len(detections) > 0:
                 for det in detections:
                     try:
+                        # Get bounding box coordinates (matching your local script format)
+                        xyxy_tensor = det.xyxy.cpu()
+                        xyxy = xyxy_tensor.numpy().squeeze()
+                        xmin, ymin, xmax, ymax = xyxy.astype(int)
+                        
+                        # Get class information
                         class_id = int(det.cls.item())
+                        class_name = model.names[class_id]
+                        
+                        # Get confidence
                         confidence = float(det.conf.item())
-                        bbox = det.xyxy.cpu().numpy().squeeze().tolist()
-                        label = model.names[class_id]
                         
-                        # Ensure bbox is a list of 4 coordinates
-                        if isinstance(bbox, (int, float)):
-                            bbox = [bbox]
-                        elif len(bbox) != 4:
-                            logger.warning(f"Invalid bbox format: {bbox}")
-                            continue
-                        
-                        output.append({
-                            "class": label,
-                            "confidence": confidence,
-                            "bbox": bbox
-                        })
+                        # Apply same confidence threshold as my local script (0.5)
+                        if confidence > 0.5:
+                            detection_list.append({
+                                "class": class_name,
+                                "class_id": class_id,  # Added for color mapping consistency
+                                "confidence": confidence,
+                                "bbox": [int(xmin), int(ymin), int(xmax), int(ymax)]  # [xmin, ymin, xmax, ymax]
+                            })
+                            object_count += 1
                         
                     except Exception as det_error:
                         logger.error(f"Error processing detection: {str(det_error)}")
                         continue
             
-            logger.info(f"Detected {len(output)} objects")
+            logger.info(f"Detected {object_count} objects above confidence threshold")
             
             return jsonify({
-                "detections": output,
-                "count": len(output),
+                "detections": detection_list,
+                "count": object_count,
                 "success": True,
-                "message": f"Detection completed successfully. Found {len(output)} objects."
+                "message": f"Detection completed successfully. Found {object_count} objects.",
+                "image_dimensions": {
+                    "width": frame.shape[1],
+                    "height": frame.shape[0]
+                }
             })
             
         except Exception as e:
@@ -179,33 +220,7 @@ def detect():
         logger.error(traceback.format_exc())
         return jsonify({"error": f"Unexpected error: {str(e)}", "success": False}), 500
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint"""
-    return jsonify({
-        "status": "healthy",
-        "model_loaded": model is not None,
-        "classes": list(model.names.values()) if model else [],
-        "success": True,
-        "server_info": {
-            "host": request.host,
-            "remote_addr": request.remote_addr
-        }
-    })
-
-@app.route('/test', methods=['GET'])
-def test():
-    """Test endpoint"""
-    return jsonify({
-        "message": "API is working!", 
-        "success": True,
-        "server_info": {
-            "host": request.host,
-            "remote_addr": request.remote_addr
-        }
-    })
-
-# Test detection endpoint with dummy data
+# Test detection endpoint with dummy data (Will remove later)
 @app.route('/test-detection', methods=['GET'])
 def test_detection():
     """Test detection with a dummy image"""
@@ -231,7 +246,7 @@ def test_detection():
         return jsonify({"error": f"Test detection failed: {str(e)}", "success": False}), 500
 
 if __name__ == '__main__':
-    # Install flask-cors if not already installed
+    # Install flask-cors if not already installed (It didnt work for me for some reason)
     try:
         from flask_cors import CORS
     except ImportError:
