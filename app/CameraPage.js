@@ -230,7 +230,7 @@ const CameraPage = () => {
     const { width: screenWidth } = Dimensions.get('window');
     const modalPhotoHeight = height * 0.8;
     
-    // NEW: Calculate scaling factors
+    // Calculate scaling factors
     const scaleX = screenWidth / photoDimensions.width;
     const scaleY = modalPhotoHeight / photoDimensions.height;
     const scale = Math.min(scaleX, scaleY);
@@ -238,19 +238,66 @@ const CameraPage = () => {
     const scaledWidth = photoDimensions.width * scale;
     const scaledHeight = photoDimensions.height * scale;
     
-    // NEW: Calculate offsets to center the image
+    // Calculate offsets to center the image
     const offsetX = (screenWidth - scaledWidth) / 2;
     const offsetY = (modalPhotoHeight - scaledHeight) / 2;
 
-    console.log('Rendering bounding boxes:', {
-      detections: lastPhotoDetections.length,
-      photoDimensions,
-      scale,
-      offsetX,
-      offsetY
+    return lastPhotoDetections.map((detection, index) => {
+      if (!detection.bbox) return null;
+      
+      const [xmin, ymin, xmax, ymax] = detection.bbox;
+      
+      // Scale and translate coordinates
+      const scaledXmin = (xmin * scale) + offsetX;
+      const scaledYmin = (ymin * scale) + offsetY;
+      const scaledBoxWidth = (xmax - xmin) * scale;
+      const scaledBoxHeight = (ymax - ymin) * scale;
+      
+      const color = bbox_colors[detection.class_id % bbox_colors.length];
+      const label = `${detection.class}: ${Math.round(detection.confidence * 100)}%`;
+      
+      return (
+        <View key={index} style={StyleSheet.absoluteFillObject} pointerEvents="none">
+          {/* Bounding box rectangle */}
+          <View
+            style={{
+              position: 'absolute',
+              left: scaledXmin,
+              top: scaledYmin,
+              width: scaledBoxWidth,
+              height: scaledBoxHeight,
+              borderWidth: 2,
+              borderColor: color,
+              backgroundColor: 'transparent',
+            }}
+          />
+          
+          {/* Label background and text */}
+          <View
+            style={{
+              position: 'absolute',
+              left: scaledXmin,
+              top: scaledYmin - 25,
+              backgroundColor: color,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              borderRadius: 3,
+              opacity: 0.9,
+            }}
+          >
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 12,
+                fontWeight: 'bold',
+              }}
+            >
+              {label}
+            </Text>
+          </View>
+        </View>
+      );
     });
-    
-    return null; // Still placeholder, will add actual boxes in next version
   };
 
   // Test API connection function
@@ -382,7 +429,7 @@ const CameraPage = () => {
         </View>
       </CameraView>
 
-      {/* Photo Preview Modal with Bounding Box Container */}
+      {/* Photo Preview Modal with Bounding Boxes */}
       <Modal
         visible={showPhotoModal}
         transparent={true}
@@ -403,7 +450,7 @@ const CameraPage = () => {
                     style={styles.fullScreenPhoto}
                     resizeMode="contain"
                   />
-                  {/* NEW: Render bounding boxes over the image */}
+                  {/* Render bounding boxes over the image */}
                   <View style={styles.boundingBoxContainer}>
                     {renderBoundingBoxes()}
                   </View>
@@ -670,7 +717,6 @@ const styles = StyleSheet.create({
     width: width,
     height: height * 0.8,
   },
-  // NEW: Bounding box container style
   boundingBoxContainer: {
     position: 'absolute',
     top: (height - height * 0.8) / 2,
