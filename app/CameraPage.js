@@ -11,7 +11,6 @@ const CameraPage = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [activeTab, setActiveTab] = useState('camera');
   const [lastPhoto, setLastPhoto] = useState(null);
-  // NEW: Add state for detection data
   const [lastPhotoDetections, setLastPhotoDetections] = useState(null);
   const [photoDimensions, setPhotoDimensions] = useState(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -22,6 +21,12 @@ const CameraPage = () => {
 
   // Make sure this matches your server IP (Run ipconfig in CMD to find your local IP)
   const API_URL = 'http://192.168.1.101:5000';
+
+  // NEW: Define bounding box colors (matching your Python script)
+  const bbox_colors = [
+    '#A47857', '#4494E4', '#5D61D1', '#B2B685', '#589F6A', 
+    '#60CAE7', '#9F7CA8', '#A9A2F1', '#627696', '#ACB0B8'
+  ];
 
   if (!permission) {
     return <View />;
@@ -92,17 +97,17 @@ const CameraPage = () => {
         console.log('Taking picture...');
         
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8, // Slightly higher quality
+          quality: 0.8,
           base64: true,
           exif: false,
           flash: flashMode,
-          format: 'jpeg', // Explicitly specify JPEG format
+          format: 'jpeg',
         });
 
         console.log('Photo taken, URI:', photo.uri);
         setLastPhoto(photo.uri);
-
-        // NEW: Store photo dimensions for bounding box scaling
+        
+        // Store photo dimensions for bounding box scaling
         Image.getSize(photo.uri, (width, height) => {
           setPhotoDimensions({ width, height });
         });
@@ -117,7 +122,6 @@ const CameraPage = () => {
         console.log('Sending to API...');
 
         // Test API connection first
-        // http://YOUR_IP:5000/health
         try {
           const healthResponse = await fetch(`${API_URL}/health`, {
             method: 'GET',
@@ -146,7 +150,7 @@ const CameraPage = () => {
 
         // Send image to Flask API
         const requestBody = {
-          image: photo.base64 // Send just the base64 string without data URL prefix
+          image: photo.base64
         };
 
         const response = await fetch(`${API_URL}/detect`, {
@@ -175,7 +179,7 @@ const CameraPage = () => {
           return;
         }
 
-        // NEW: Store detections for drawing bounding boxes
+        // Store detections for drawing bounding boxes
         setLastPhotoDetections(result.detections || []);
 
         // Display results
@@ -183,7 +187,7 @@ const CameraPage = () => {
           const detectionText = result.detections
             .map(d => `${d.class} (${(d.confidence * 100).toFixed(1)}%)`)
             .join('\n');
-          // Make better alert message (Maybe like my local one?)
+          
           Alert.alert(
             'Wildlife Detected! 🦁',
             `Found ${result.count} animal(s):\n\n${detectionText}`,
@@ -220,7 +224,6 @@ const CameraPage = () => {
   };
 
   // Test API connection function
-  //  http://YOUR_IP:5000/test
   const testAPIConnection = async () => {
     try {
       const response = await fetch(`${API_URL}/test`, {
@@ -422,7 +425,6 @@ const CameraPage = () => {
                           style: 'destructive',
                           onPress: () => {
                             setLastPhoto(null);
-                            // NEW: Clear detection data when deleting photo
                             setLastPhotoDetections(null);
                             setPhotoDimensions(null);
                             setShowPhotoModal(false);
